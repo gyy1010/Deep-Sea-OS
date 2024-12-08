@@ -1,0 +1,130 @@
+#!/bin/bash
+
+# 调色方式编号与名称对应表
+declare -A COLOR_MODES=(
+  [1]="复古港风街头"
+  [2]="日常街拍滤镜"
+  [3]="阴天森系电影感"
+  [4]="甜美清透调色"
+  [5]="高级自然调色"
+  [6]="日系奶油调色"
+  [7]="温柔日常调色"
+  [8]="夜幕氛围感"
+  [9]="高级感调色"
+  [10]="ins奶油调色"
+  [11]="ins日常调色"
+  [12]="夕阳高级色"
+  [13]="冷白皮调色"
+  [14]="室内调色"
+  [15]="风景调色"
+  [16]="美食调色"
+  [17]="浪漫落日调色"
+  [18]="马赛克给我滚蛋"
+  [19]="隐私销毁器"
+  [20]="抑郁症少女发癫画速写"
+  [21]="照片装裱器"
+  [22]="速写困难户的救星"
+  [23]="旋风油画"
+)
+
+# 调色参数定义（ImageMagick 6.9 版本）
+declare -A COLOR_PARAMS=(
+  [复古港风街头]="-level-colors 20,10 -brightness-contrast 10,77 -modulate 100,100,100 -white-point 31"
+  [日常街拍滤镜]="-level-colors 59,11 -brightness-contrast 11,20 -modulate 100,100,100 -white-point 30 -blur 0x1.5 -sharpen 0x39"
+  [阴天森系电影感]="-level-colors -25,3 -brightness-contrast 17,5 -modulate 100,100,100 -white-point 50 -blur 0x1.5 -sharpen 0x50"
+  [甜美清透调色]="-level-colors 20,8 -brightness-contrast 20,32 -modulate 100,100,100 -white-point 72 -sharpen 0x21 -unsharp 0x24"
+  [高级自然调色]="-level-colors 87,76 -brightness-contrast 30,87 -modulate 100,100,100 -white-point 8 -sharpen 0x5"
+  [日系奶油调色]="-level-colors 34,10 -brightness-contrast -16,10 -modulate 100,100,100 -white-point 13  -sharpen 0x100 -unsharp 0x100"
+  [温柔日常调色]="-level-colors 33,61 -brightness-contrast 36,61 -modulate 100,100,100 -white-point 0 "
+  [夜幕氛围感]="-level-colors -33,62 -brightness-contrast -49,62 -modulate 100,100,100 -white-point 53 -sharpen 0x16 -unsharp 0x13"
+  [高级感调色]="-level-colors 34,58 -brightness-contrast 41,58 -modulate 100,100,100 -white-point 36 -sharpen 0x34 -unsharp 0x100"
+  [ins奶油调色]="-level-colors 21,43 -brightness-contrast 21,43 -modulate 100,100,100 -white-point 55 -sharpen 0x100 -unsharp 0x100"
+  [ins日常调色]="-level-colors 33,61 -brightness-contrast 36,61 -modulate 100,100,100 -white-point 0"
+  [夕阳高级色]="-level-colors -23,41 -brightness-contrast -25,41 -modulate 100,100,100 -white-point 31 -sharpen 0x24 -unsharp 0x27"
+  [冷白皮调色]="-level-colors -21,-31 -brightness-contrast 30,-21 -modulate 100,100,100 -white-point -28"
+  [室内调色]="-level-colors 5,2 -brightness-contrast 5,2 -modulate 100,100,100 -white-point 1"
+  [风景调色]="-level-colors -52,90 -brightness-contrast -52,90 -modulate 100,100,100 -white-point 42"
+  [美食调色]="-level-colors 34,-12 -brightness-contrast 9,-12 -modulate 100,100,100 -white-point 17"
+  [浪漫落日调色]="-level-colors -20,47 -brightness-contrast -64,47 -modulate 100,100,100 -white-point 23 -sharpen 0x20 -unsharp 0x20 -darken 17"
+  [马赛克给我滚蛋]="-filter Lanczos -resize 200%"
+  [隐私销毁器]="-resize 5% -resize 2000% -blur 30"
+  [抑郁症少女发癫画速写]="-frame 299x299 -mattecolor "#FFFFFF" -swirl 1999 -charcoal 2 -swirl -1999 -brightness-contrast 0,99 -trim +repage"
+  [照片装裱器]="-frame 60x60 -mattecolor "#FAFAFA""
+  [速写困难户的救星]="-auto-level -charcoal 1.5 -brightness-contrast 0,99"
+  [旋风油画]="-frame 299x299 -mattecolor "#FFFFFF" -swirl -499 -paint 5 -swirl 499 -trim +repage"
+)
+
+# 提示用户输入图片或文件夹路径
+read -p "请输入图片或文件夹路径: " INPUT_PATH
+
+# 检查输入路径是否存在
+if [ ! -e "$INPUT_PATH" ]; then
+  echo "路径不存在: $INPUT_PATH"
+  sleep 3
+  exit 1
+fi
+
+# 判断输入是文件还是文件夹
+IS_DIRECTORY=false
+if [ -d "$INPUT_PATH" ]; then
+  IS_DIRECTORY=true
+fi
+
+# 显示调色方式列表
+echo "请选择调色方式编号 (1-19):"
+for key in "${!COLOR_MODES[@]}"; do
+  echo "$key. ${COLOR_MODES[$key]}"
+done
+
+# 提示用户输入调色方式编号
+read -p "请输入调色方式编号: " MODE_NUMBER
+
+# 获取调色方式名称
+MODE_NAME="${COLOR_MODES[$MODE_NUMBER]}"
+
+# 检查调色方式编号是否有效
+if [ -z "$MODE_NAME" ]; then
+  echo "无效的调色方式编号: $MODE_NUMBER"
+  echo "请输入有效的编号 (1-19)"
+  sleep 3
+  exit 1
+fi
+
+# 获取调色参数
+COLOR_PARAM="${COLOR_PARAMS[$MODE_NAME]}"
+
+# 输出调色信息
+echo "正在使用调色方式: $MODE_NAME"
+echo "调色参数: $COLOR_PARAM"
+
+# 根据输入类型执行不同的操作
+if [ "$IS_DIRECTORY" = true ]; then
+  # 遍历文件夹中的所有图像文件
+  for IMAGE_FILE in "$INPUT_PATH"/*.{jpg,jpeg,png,JPG,JPEG,PNG}; do
+    if [ -f "$IMAGE_FILE" ]; then
+      # 执行调色操作
+      convert "$IMAGE_FILE" $COLOR_PARAM "${IMAGE_FILE%.*}_$MODE_NAME.${IMAGE_FILE##*.}"
+      echo "调色完成，生成文件: ${IMAGE_FILE%.*}_$MODE_NAME.${IMAGE_FILE##*.}"
+      sleep 3
+    fi
+  done
+else
+  # 单个文件处理
+  IMAGE_PATH="$INPUT_PATH"
+  
+  # 检查图片路径是否存在
+  if [ ! -f "$IMAGE_PATH" ]; then
+    echo "图片路径不存在: $IMAGE_PATH"
+    sleep 3
+    exit 1
+  fi
+  
+  # 执行调色操作
+  convert "$IMAGE_PATH" $COLOR_PARAM "${IMAGE_PATH%.*}_$MODE_NAME.${IMAGE_PATH##*.}"
+  echo "调色完成，生成文件: ${IMAGE_PATH%.*}_$MODE_NAME.${IMAGE_PATH##*.}"
+  sleep 3
+fi
+
+
+
+
