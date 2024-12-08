@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# 获取用户的 home 目录
+HOME_DIR="$HOME"
+
+# 无限循环，直到用户输入有效的链接
+while true; do
+  # 提示用户输入文件链接或磁力链接
+  echo "快递小哥沈還将竭诚为您服务"
+  read -p "请告诉我需要送达您什么东东（文件链接或磁力链接）: " URL
+
+  # 检查用户是否输入了内容
+  if [ -n "$URL" ]; then
+    break
+  else
+    echo "骚瑞啦老铁，没理解您的需求，请告诉我寄件地址（文件链接或磁力链接）"
+  fi
+done
+
+# 使用 aria2c 下载文件
+# -x 设置最大并发线程数（这里设置为16）
+# -s 设置每个服务器的最大连接数（这里设置为16）
+# -d 设置下载目录为用户的 home 目录
+# -o 设置输出文件名（可选，如果不设置则自动命名）
+
+
+echo "您的快递正在派送中： $HOME_DIR ..."
+aria2c_output=$(aria2c -x 16 -s 16 -d "$HOME_DIR" --console-log-level=notice --summary-at-end "$URL" 2>&1)
+exit_code=$?
+
+# 检查 aria2c 是否成功
+if [ $exit_code -eq 0 ]; then
+  echo "老铁，您的快递已送达 $HOME_DIR"
+  echo "请去签收吧，记得给我五星好评呦"
+else
+  echo "沈還："
+#  echo "$aria2c_output"
+  
+  # 尝试根据输出信息判断错误类型
+  if echo "$aria2c_output" | grep -q "HTTP response header was bad or unexpected"; then
+    echo "呜呜呜……寄件方脾气也太暴躁了吧，我去取件时ta一脚把我踹开，还对我恶语相向……"
+  elif echo "$aria2c_output" | grep -q "Could not connect to host"; then
+    echo "网络堵车啦，记得给快递小哥加加油呀"
+  elif echo "$aria2c_output" | grep -q "Resource was not found"; then
+    echo "你在开玩笑吧老铁？这寄件地址荒芜人烟的，连个人影都不见，让我寄空气给你吗？"
+  elif echo "$aria2c_output" | grep -q "Operation timed out"; then
+    echo "我为了给你寄件已经玩命啦，可就是这个网络一点也不给力"
+  else
+    echo "对不起啦老铁，发生了未知错误，但即便发生的情况超出了我的学识，我也会努力学习哒。"
+  fi
+  
+  sleep 7
+  exit 1
+fi
